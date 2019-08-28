@@ -5,9 +5,11 @@
 (defcallback myfunc :double ((n :unsigned-int) (x :pointer) (grad :pointer) (my_func_data :pointer))
   (incf counts)
   (let ((sqrtx1 (sqrt (mem-aref x :double 1))))
+    ;; Set objective gradient when it isn't null
     (when (not (null-pointer-p grad))
       (setf (mem-aref grad :double 0) 0.0d0
 	    (mem-aref grad :double 1) (/ 0.5d0 sqrtx1)))
+    ;; Return objective function value
     sqrtx1))
 
 (defcstruct my_constraint_data
@@ -16,12 +18,14 @@
 
 (defcallback myconstraint :double ((n :unsigned-int) (x :pointer) (grad :pointer) (data :pointer))
   (with-foreign-slots ((a b) data (:struct my_constraint_data))
-    (when (not (null-pointer-p grad))
-      (let ((x0 (mem-aref x :double 0))
-	    (x1 (mem-aref x :double 1)))
-	(setf (mem-aref grad :double 0) (* 3 a (expt (+ (* a x0) b) 2))
-	      (mem-aref grad :double 1) -1d0)
-	(- (expt (+ (* a x0) b) 3) x1)))))
+    (let ((x0 (mem-aref x :double 0))
+          (x1 (mem-aref x :double 1)))
+      ;; Set constraint gradient when it isn't null
+      (when (not (null-pointer-p grad))
+        (setf (mem-aref grad :double 0) (* 3 a (expt (+ (* a x0) b) 2))
+	      (mem-aref grad :double 1) -1d0))
+      ;; Return constraint value
+      (- (expt (+ (* a x0) b) 3) x1))))
 
 (defun test (&optional (alg :NLOPT_LD_MMA))
   (let ((opt (nlopt_create (foreign-enum-value 'nlopt_algorithm alg) 2))
@@ -41,7 +45,7 @@
 	(setf a -1d0 b 1d0))
       (nlopt_add_inequality_constraint opt (get-callback 'myconstraint) data0 1d-8)
       (nlopt_add_inequality_constraint opt (get-callback 'myconstraint) data1 1d-8)
-      (nlopt_set_xtol_rel opt 1d-4)
+      ;;(nlopt_set_xtol_rel opt 1d-4)
       (setf (mem-aref x :double 0) 1.234d0
 	    (mem-aref x :double 1) 5.678d0)
       (setf counts 0)

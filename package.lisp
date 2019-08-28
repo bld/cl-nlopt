@@ -3,7 +3,9 @@
 
 (in-package :cl-nlopt)
 
+;; Define & use NLOPT shared library
+
 (define-foreign-library libnlopt
-  (t (:default "libnlopt-0")))
+  (t (:default "libnlopt")))
 
 (use-foreign-library libnlopt)
