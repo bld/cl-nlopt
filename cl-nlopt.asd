@@ -7,5 +7,5 @@
   :components
   ((:file "package")
    (:file "swig")
-   (:file "nlopt")
+   (:file "test-mma")
    (:file "test-slsqp")))
